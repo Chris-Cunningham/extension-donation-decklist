@@ -1,0 +1,37 @@
+table {
+    border-collapse: collapse;
+    width:100%;
+}
+
+.extension-decklist-title {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+}
+
+tr:nth-of-type(odd).extension-decklist-deck {
+    background-color:#ccc;
+}
+
+tr.extension-decklist-deck td {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+tr.extension-decklist-format-header td {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 5px;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+tr.extension-decklist-column-headings td {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+}

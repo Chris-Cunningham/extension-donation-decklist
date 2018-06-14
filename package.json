@@ -1,0 +1,25 @@
+{
+  "name": "extension-donation-decklist",
+  "version": "1.0.0",
+  "description": "Donation Decklist Twitch Extension",
+  "scripts": {
+    "cert": "./bin/generate_cert.sh server",
+    "start": "node services/backend",
+    "frontend": "node services/frontend"
+  },
+  "keywords": [
+    "twitch",
+    "extension"
+  ],
+  "author": "Chris Cunningham <fivecs@gmail.com>",
+  "dependencies": {
+    "boom": "^7.2.0",
+    "color": "^3.0.0",
+    "commander": "^2.15.0",
+    "hapi": "^17.2.2",
+    "inert": "^5.1.0",
+    "jsonwebtoken": "^8.2.0",
+    "request": "^2.85.0",
+    "selfsigned": "^1.10.2"
+  }
+}
