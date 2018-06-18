@@ -63,8 +63,11 @@ function updateBlockState(state) {
     var donationDecks = state.split(';')
     twitch.rig.log('Updating table with '+donationDecks.length+' decks.');
     for (var i=0; i < donationDecks.length; i++) {
+        // Append this deck to the table.
         appendTable(donationDecks[i].split(','));
     }
+    // After the table is created, go back into it and put header rows in for new formats.
+    insertHeaderRows();
 
 }
 

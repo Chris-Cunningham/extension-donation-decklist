@@ -1,14 +1,3 @@
-/**
-* As we loop through the decks, we want to keep track of what the previous format was so we know
-* whether to make a header row.
-*/
-var EXTENSION_DONATION_DECKLIST_PREVIOUS_FORMAT = '';
-
-/**
-* The following is setup to be able to access google sheets.
-*/
-
-
 
 /**
 * Append a row element to the content-table displaying the results of the API call.
@@ -22,46 +11,79 @@ function appendTable(row) {
         deckPoints = row[0],
         deckLink = row[2],
         deckMoneyPoints = row[4],
-        deckDate = row[5]
+        deckDate = row[5],
+        deckDatePoints = deckPoints - deckMoneyPoints;
     var tbl = document.getElementById('content-table');
-
-    // If this is the first row of a new format, make a new format row.
-    if (formatOfLastRow() != deckFormat) {
-        appendCategoryLine(deckFormat);
-        thisIsAnOddRow = true;
-    }
 
     // Make a row in the table to put things in.
     var r = tbl.insertRow(-1);
+
+    // Set up the class for CSS.
     r.className = 'extension-decklist-deck';
+
+    // Label the title so we can get category headers inserted later.
+    r.title = deckFormat;
 
     // insertCell(-1) creates a new cell at the end of the row.
     // Make a cell that has the deck name and might have the deck link.
     createCell(r.insertCell(-1), deckName, 'deck-with-link', deckLink);
     // Make a cell with the number of votes.
-    deckDatePoints = deckPoints - deckMoneyPoints;
     createCell(r.insertCell(-1), deckPoints + ' ($' + deckMoneyPoints + ' + ' + deckDatePoints + ' days)');
 
-    // Keep track of what we did last.
-    EXTENSION_DONATION_DECKLIST_PREVIOUS_FORMAT = deckFormat;
+}
+
+// Insert all the header rows. This function assumes that all the decklists are already in the table.
+function insertHeaderRows() {
+    var tbl = document.getElementById('content-table'),
+        previousRowFormat,
+        thisRowFormat,
+        i;
+
+    /** We need to loop through the table in reverse, because when we add rows to the table, we are going
+    * to change the indexes where things need to be added. For example, if the table is
+    *
+    * 0 Modern deck
+    * 1 Modern deck
+    * 2 Legacy Deck
+    * 3 Vintage Deck
+    *
+    * then we need headers at locations 0, 2, and 3. But if you start with inserting a row at 0,
+    * then you actually need 0, 3, and 4. And then it keeps changing. Looping in reverse fixes this issue.
+    */
+
+    for (i = tbl.rows.length - 1; i >= 0; i--) {
+        thisRowFormat = tbl.rows[i].title;
+
+        // The bottom row of the table shouldn't trigger a new header that says "blank."
+        if (i === tbl.rows.length - 1) {
+            previousRowFormat = thisRowFormat;
+        } else {
+            if (thisRowFormat !== previousRowFormat) {
+                insertHeaderRow(previousRowFormat, i);
+                previousRowFormat = thisRowFormat;
+            }
+        }
+    }
+    // There will always be a header row at the top. This is the price of looping in reverse.
+    insertHeaderRow(previousRowFormat, 0);
 
 }
 
 /**
-* Append a row element to the content-table that is a header for the given format.
+* Insert a row element into the content-table at position rowPosition that is a header for the given format.
 *
 * @param {stringFormat} a string that represents the format name.
+* @param {rowPosition} an integer that gives the location of the row to be inserted.
 */
-function appendCategoryLine(stringFormat) {
+function insertHeaderRow(stringFormat, rowPosition) {
     // Make a row in the table to put things in.
     var tbl = document.getElementById('content-table'),
-        r1 = tbl.insertRow(-1),
+        r1 = tbl.insertRow(rowPosition),
         c1 = r1.insertCell(-1),
-        r2 = tbl.insertRow(-1),
+        r2 = tbl.insertRow(rowPosition + 1),
         c2 = r2.insertCell(-1),
         c3 = r2.insertCell(-1),
         columnsInTable = 2;
-
 
     // The first row just says the format name.
     // Let the CSS control what this looks like except set its column span.
@@ -99,15 +121,7 @@ function extractRootDomain(domain) {
     return domain;
 }
 
-/**
-* Look at the last row of the content-table and figure out what format it is.
-*/
-function formatOfLastRow() {
-    // Right now this is stored in a global variable.
-    return EXTENSION_DONATION_DECKLIST_PREVIOUS_FORMAT;
-}
-
-// create DIV element and append to the table cell. If voteButtonText is not null, we will make a button!
+// create DIV element and append to the table cell.
 function createCell(cell, text, chosenClass, possibleURL) {
 
     var div = document.createElement('div') // create DIV element
