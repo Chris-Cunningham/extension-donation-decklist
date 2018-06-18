@@ -8,37 +8,6 @@ var EXTENSION_DONATION_DECKLIST_PREVIOUS_FORMAT = '';
 * The following is setup to be able to access google sheets.
 */
 
-// Client ID and API key from the Developer Console
-var CLIENT_ID = '113528389247-uaj21g751tq0osm83k9hc2do2ab3f0r1.apps.googleusercontent.com';
-var API_KEY = 'AIzaSyAgTnnhamUN5hkryKuc9N5qNlyZHer3VJ4';
-// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
-
-/**
-*  On load, called to load the Google Docs API client library.
-*/
-function handleClientLoad() {
-    gapi.load('client', initClient);
-}
-
-/**
-*  Initializes the Google Docs API client library.
-*/
-function initClient() {
-    gapi.client.init({
-        apiKey: API_KEY,
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        discoveryDocs: DISCOVERY_DOCS
-    }).then(function(response) {
-        listDecks();
-    }, function(reason) {
-        twitch.rig.log('Extension Donation Decklist Error 1: ' + reason.result.error.message);
-    });
-}
 
 
 /**
@@ -171,27 +140,7 @@ function isAcceptableHost(str) {
     return acceptableDomains.indexOf(extractRootDomain(str)) >= 0
 }
 
-/**
-* Print the decklists from a specific spreadsheet:
-* https://docs.google.com/spreadsheets/d/1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0
-*/
 function listDecks() {
-    gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
-    range: 'Magic!A2:F',
-    }).then(function(response) {
-        var range = response.result;
-        if (range.values.length > 0) {
-            for (var i = 0; i < range.values.length; i++) {
-                var row = range.values[i];
-                if (String(row[1]) != 'undefined') {   // Don't display blank rows.
-                    appendTable(row);
-                }
-            }
-        } else {
-            twitch.rig.log('Extension Donation Decklist Error 3: No data found.');
-        }
-    }, function(response) {
-        twitch.rig.log('Extension Donation Decklist Error 2: ' + response.result.error.message);
-    });
+    // We will ask the EBS for the decklist as a string.
+    $.ajax(requests.get);
 }

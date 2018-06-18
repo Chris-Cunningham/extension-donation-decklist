@@ -16,27 +16,27 @@
 
 const fs = require('fs');
 const Hapi = require('hapi');
+const {google} = require('googleapis');
+const privatekey = require("./privateSettings.json")
 const path = require('path');
 const Boom = require('boom');
-const color = require('color');
 const ext = require('commander');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 
 const verboseLogging = true; // verbose logging; turn off for production
 
-const initialColor = color('#6441A4');     // super important; bleedPurple, etc.
-const initialShape = 100;                   // the radius of the circle starts at 50
+const initialDonationDecklist = ''         // default value for a channel's donation decklist
 const serverTokenDurationSec = 30;         // our tokens for pubsub expire after 30 seconds
 const userCooldownMs = 1000;               // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000; // interval to reset our tracking object
-const channelCooldownMs = 1000;            // maximum broadcast rate per channel
+const channelGapiCooldownMs = 20000;       // only use the google api this often to look for new data
 const bearerPrefix = 'Bearer ';            // JWT auth headers have this prefix
 
-const channelCooldowns = { }           // rate limit compliance
+const channelDonationDecklists = { }   // current extension state
+const channelGapiCooldowns = { }       // GAPI rate limit compliance
 let   userCooldowns = { };             // spam prevention
 
-// TODO: i18n
 const STRINGS = {
     env_secret: `* Using env var for secret`,
     env_client_id: `* Using env var for client-id`,
@@ -45,13 +45,11 @@ const STRINGS = {
     missing_secret: "Extension secret required.\nUse argument '-s <secret>' or env var 'EXT_SECRET'",
     missing_clientId: "Extension client ID required.\nUse argument '-c <client ID>' or env var 'EXT_CLIENT_ID'",
     missing_ownerId: "Extension owner ID required.\nUse argument '-o <owner ID>' or env var 'EXT_OWNER_ID'",
-    message_send_error: "Error sending message to channel %s",
-    pubsub_response: "Message to c:%s returned %s",
-    state_broadcast: "Broadcasting state",
-    body_broadcast: "Body of request is:%s",
-    send_state: "Sending nothing to c:%s",
-    cooldown: "Please wait before clicking again",
-    invalid_jwt: "Invalid JWT"
+    send_state: "Sending donation decklist with %s decks to c:%s",
+    use_gapi: "Using Google API to get the donation decklist for %s",
+    dont_use_gapi: "Using cache (not Google API) for the donation decklist for %s",
+    gapi_error: "Google API error: %s",
+    gapi_success: "Google API successfully retrieved %s rows."
 };
 
 ext
@@ -62,7 +60,7 @@ ext
     .parse(process.argv)
 ;
 
-// hacky env var support
+// This env var support is from twitch extension hello-world.
 const ENV_SECRET = process.env.EXT_SECRET;
 const ENV_CLIENT_ID = process.env.EXT_CLIENT_ID;
 const ENV_OWNER_ID = process.env.EXT_OWNER_ID;
@@ -75,7 +73,6 @@ if(!ext.clientId && ENV_CLIENT_ID) {
     console.log(STRINGS.env_client_id);
     ext.clientId = ENV_CLIENT_ID;
 }
-
 if(!ext.ownerId && ENV_OWNER_ID) {
     console.log(STRINGS.env_owner_id);
     ext.ownerId = ENV_OWNER_ID;
@@ -90,7 +87,6 @@ if(!ext.clientId) {
     console.log(STRINGS.missing_clientId);
     process.exit(1); 
 }
-
 if(!ext.ownerId) {
     console.log(STRINGS.missing_ownerId);
     process.exit(1);
@@ -99,10 +95,11 @@ if(!ext.ownerId) {
 // log function that won't spam in production
 const verboseLog = verboseLogging ? console.log.bind(console) : function(){}
 
+// Spin up a server using the certificates in /conf. Suppoedly `npm run cert` should make certs if you don't have any.
 const server = new Hapi.Server({
     host: 'localhost.rig.twitch.tv',
     port: 8081,
-    tls: { // if you need a certificate, use `npm run cert`
+    tls: {
         key: fs.readFileSync(path.resolve(__dirname, '../conf/server.key')),
         cert: fs.readFileSync(path.resolve(__dirname, '../conf/server.crt')),
     },
@@ -113,7 +110,24 @@ const server = new Hapi.Server({
     }
 });
 
-// use a common method for consistency
+// Configure a JWT auth client to connect to the Google Sheets API.
+// From http://isd-soft.com/tech_blog/accessing-google-apis-using-service-account-node-js/
+let jwtClient = new google.auth.JWT(
+    privatekey.client_email,
+    null,
+    privatekey.private_key,
+    ['https://www.googleapis.com/auth/spreadsheets.readonly']);
+    //authenticate request
+jwtClient.authorize(function (err, tokens) {
+    if (err) {
+        console.log(err);
+        return;
+    } else {
+        console.log("Successfully connected to Google API with a JWT.");
+    }
+});
+
+// Use a common method for consistency of dealing with the headers from twitch requests. From hello-world.
 function verifyAndDecode(header) {
 
     try {
@@ -138,66 +152,46 @@ function stateQueryHandler(req, h) {
 
     const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-    verboseLog(STRINGS.send_state, opaqueUserId);
-    return 'ok';
-}
+    // Per-channel rate limit handler for requests to the google sheets API.
+    const now = Date.now();
+    const cooldown = channelGapiCooldowns[channelId];
 
-function attemptStateBroadcast(channelId) {
+    if (!cooldown || cooldown.time < now) {
 
-  // per-channel rate limit handler
-  const now = Date.now();
-  const cooldown = channelCooldowns[channelId];
+        // We can hit the google API immediately because we're outside the cooldown
+        verboseLog(STRINGS.use_gapi, opaqueUserId);
 
-  if (!cooldown || cooldown.time < now) {
-    // we can send immediately because we're outside the cooldown
-    sendStateBroadcast(channelId);
-    channelCooldowns[channelId] = { time: now + channelCooldownMs };
-    return;
-  }
+        // Reset the cooldown immediately.
+        channelGapiCooldowns[channelId] = { time: now + channelGapiCooldownMs };
 
-  // schedule a delayed broadcast only if we haven't already
-  if (!cooldown.trigger) {
-      cooldown.trigger = setTimeout(sendStateBroadcast, now - cooldown.time, channelId);
-  }
-}
+        // Call getDecks, which returns a Promise to tell us the number of decks it found when it is done.
+        return getDecks(channelId).then(
+            function (numberOfDecks){
+                verboseLog(STRINGS.send_state, numberOfDecks, opaqueUserId);
+                return channelDonationDecklists[channelId];
+            });
 
-function sendStateBroadcast(channelId) {
-  
-    // our HTTP headers to the Twitch API
-    const headers = {
-        'Client-Id': ext.clientId,
-        'Content-Type': 'application/json',
-        'Authorization': bearerPrefix + makeServerToken(channelId)
-    };
+    } else {
 
-    const currentState = 'ok!';
+        // We have already recently queried the google API for this channel, so just send what we already have.
+        verboseLog(STRINGS.dont_use_gapi, opaqueUserId)
+        let currentDonationDecklist = channelDonationDecklists[channelId] || initialDonationDecklist;
 
-    // our POST body to the Twitch API
-    const body = JSON.stringify({
-        content_type: 'application/json',
-        message: currentState,
-        targets: [ 'broadcast' ]
-    });
-
-    verboseLog(STRINGS.body_broadcast, body);
-
-    // send our broadcast request to Twitch
-    request(
-        `https://api.twitch.tv/extensions/message/${channelId}`,
-        {
-            method: 'POST',
-            headers,
-            body
+        if (currentDonationDecklist.length === 0) {
+            numberOfDecks = 0;
+        } else {
+            // The donation decklist is a semicolon-delimited list of decks, so counting the semicolons finds how many.
+            numberOfDecks = (currentDonationDecklist.match(/;/g) || []).length + 1;
         }
-        , (err, res) => {
-            if (err) {
-                console.log(STRINGS.messageSendError, channelId);
-            } else {
-                verboseLog(STRINGS.pubsub_response, channelId, res.statusCode);
-            }
-    });
+        verboseLog(STRINGS.send_state, numberOfDecks, opaqueUserId);
+        return currentDonationDecklist;
+
+    }
+
+
 }
 
+// From hello-world.
 function makeServerToken(channelId) {
   
     const payload = {
@@ -214,6 +208,7 @@ function makeServerToken(channelId) {
     return jwt.sign(payload, secret, { algorithm: 'HS256' });
 }
 
+// From hello-world.
 function userIsInCooldown(opaqueUserId) {
   
     const cooldown = userCooldowns[opaqueUserId];
@@ -227,17 +222,109 @@ function userIsInCooldown(opaqueUserId) {
     return false;
 }
 
+/*
+*
+* getDecks() is the workhorse of the EBS.
+* Most users will not cause this function to be called; it will only be called if we suspect our data might be old.
+*
+* The donation decklist for this channel is stored at channelDonationDecklists[channelId].
+* This function clears out whatever was in there (hopefully this doesn't cause a collision?)
+* Then it goes to ask google's API for all the rows of the spreadsheet.
+* Then it stores the decklists in the channelDonationDecklists[] collection.
+*
+* Returns a Promise to tell you the number of rows it found.
+*
+*/
+function getDecks(channelId) {
+
+    // Connecting to the google API and getting the results might be slow, so we return a Promise.
+    return new Promise(function (fulfill, reject){
+
+        // Connect to the Google API.
+        const sheets = google.sheets({version: 'v4', auth: jwtClient});
+
+        // Clear out the donation decklist variable for this channel.
+        channelDonationDecklists[channelId] = initialDonationDecklist;
+
+        // Go get the values.
+        sheets.spreadsheets.values.get({
+            spreadsheetId: '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
+            range: 'Magic!A2:F'
+        }, function(err, result) {
+            if(err) {
+                // In this case, Google's API gave us an error.
+                verboseLog(STRINGS.gapi_error, err);
+                reject(err);
+            } else {
+                // In this case, result.data.values is an array of rows of data.
+                var numRows = result.data.values ? result.data.values.length : 0;
+                verboseLog(STRINGS.gapi_success, numRows);
+
+                // Not every row of data represents an actual deck. Keep track of how many decks.
+                var numberOfDecks = 0;
+
+                // Loop through all the rows in the spreadsheet looking for decks.
+                for (var i = 0; i < numRows; i++) {
+                    var row = result.data.values[i];
+                    if (String(row[1]) != 'undefined') {   // Rows with blank second columns are not decks.
+                        // Append this deck to the donation decklist variable.
+                        appendDeck(row, channelId);
+                        numberOfDecks += 1;
+                    }
+                }
+                // We made it, so fulfill the Promise to say how many decks there were.
+                fulfill(numberOfDecks);
+            }
+        });
+    });
+
+}
+
+// This function takes a row from a Google Sheets API spreadsheet and appends it as a string to the
+// current channel's donation decklist. The donation decklist is a semicolon-delimited list.
+function appendDeck(row, channelId) {
+    let currentDonationDecklist = channelDonationDecklists[channelId] || initialDonationDecklist;
+
+    // We are making a semicolon-delimited list of decks to pass back to the client.
+    // The first deck doesn't need a semicolon.
+    if (currentDonationDecklist.length > 0) currentDonationDecklist += ';'
+
+    let thisDeck = '';
+    for (var i=0; i<row.length; i++) {
+        // Each deck is a comma-delimited list of the entries in the row.
+        // So make sure the entries in the row don't have any commas or semicolons.
+        thisDeck += removeDelimiters(row[i]);
+        if (i < row.length - 1) thisDeck += ',';
+    }
+
+    // Append the deck to the string channelDonationDecklists[channelId]. We already appended the delimiter earlier.
+    channelDonationDecklists[channelId] = currentDonationDecklist + thisDeck;
+
+    return;
+}
+function removeDelimiters(str) {
+    /*
+    * ['",;] we want to remove these characters: ' " , ;
+    * +       we want to remove any number of these characters.
+    * /g      we want to do this for the whole string, not just the first occurrence.
+    * ''      we want to replace the characters above with a blank.
+    */
+    return str.replace(/['",;]+/g, '')
+}
+
+
+
 (async () => { // we await top-level await ;P
-  
-    // new viewer is requesting the current state.
+
+    // this is the route for a new viewer to request the current state.
     server.route({
         method: 'GET',
         path: '/state/query',
         handler: stateQueryHandler
     });
 
+    // Load up our server for the EBS.
     await server.start();
-
     console.log(STRINGS.server_started, server.info.uri);
 
     // periodically clear cooldown tracking to prevent unbounded growth due to
@@ -245,3 +332,7 @@ function userIsInCooldown(opaqueUserId) {
     setInterval(function() { userCooldowns = {} }, userCooldownClearIntervalMs)
 
 })(); // IIFE you know what I mean ;)
+
+
+
+

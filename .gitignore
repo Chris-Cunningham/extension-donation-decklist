@@ -1,6 +1,9 @@
 # Idea
 .idea/*
 
+# Secrets
+services/privateSettings.json
+
 # Yarn lockfile
 yarn.lock
 

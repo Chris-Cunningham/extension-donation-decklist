@@ -1,7 +1,7 @@
 var token = "";
 var tuid = "";
 var ebs = "";
-var HOST_URL = 'https://localhost:8081/state/'
+var HOST_URL = 'https://localhost.rig.twitch.tv:8081/state/'
 
 // because who wants to type this every time?
 var twitch = window.Twitch.ext;
@@ -58,14 +58,14 @@ function logSuccess(hex, status) {
 }
 
 function updateBlockState(state) {
-    twitch.rig.log('Updating block state');
-    // Currently this doesn't do anything
-}
+    // When the EBS sends us the decklist, we can run through the string that the EBS sent us.
+    // The string is a semicolon-delimited list of rows. Each row is a comma-delimited list of entries.
+    var donationDecks = state.split(';')
+    twitch.rig.log('Updating table with '+donationDecks.length+' decks.');
+    for (var i=0; i < donationDecks.length; i++) {
+        appendTable(donationDecks[i].split(','));
+    }
 
-function decodeState(state) {
-    // Takes a string as input and returns an object that has the components of the state.
-    // For us that will eventually be a list of how many votes each deck has.
-    return {}
 }
 
 $(function() {
@@ -78,7 +78,8 @@ $(function() {
         $.ajax(requests.get);
     });
 
-    // listen for incoming broadcast message from our EBS
+    // Listen for incoming broadcast message from our EBS. This could theoretically in the future allow
+    // a decklist update to be pushed out to all the clients.
     twitch.listen('broadcast', function (target, contentType, message) {
         twitch.rig.log('Received broadcast state: '+message);
         updateBlockState(message);
