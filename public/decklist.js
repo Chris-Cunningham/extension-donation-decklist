@@ -1,3 +1,5 @@
+// The domains listed here need to be explicitly allowed on the extension's Whitelisted Panel URLs.
+const acceptableDomains = ['tappedout.net', 'twitter.com', 'deckstats.net', 'tcgplayer.com', 'mtgtop8.com', 'streamdecker.com', 'twimg.com', 'mtggoldfish.com'];
 
 /**
 * Append a row element to the content-table displaying the results of the API call.
@@ -12,7 +14,8 @@ function appendTable(row) {
         deckLink = row[2],
         deckMoneyPoints = row[4],
         deckDate = row[5],
-        deckDatePoints = deckPoints - deckMoneyPoints;
+        deckDatePoints = deckPoints - deckMoneyPoints,
+        stringForVotes;
     var tbl = document.getElementById('content-table');
 
     // Make a row in the table to put things in.
@@ -28,7 +31,14 @@ function appendTable(row) {
     // Make a cell that has the deck name and might have the deck link.
     createCell(r.insertCell(-1), deckName, 'deck-with-link', deckLink);
     // Make a cell with the number of votes.
-    createCell(r.insertCell(-1), deckPoints + ' ($' + deckMoneyPoints + ' + ' + deckDatePoints + ' days)');
+    stringForVotes = deckPoints + ' ($' + deckMoneyPoints + ' + ' + deckDatePoints + ' day';
+    if (deckDatePoints != 1) {
+        stringForVotes += 's)';
+    } else {
+        stringForVotes += ')';
+    }
+    createCell(r.insertCell(-1), stringForVotes);
+
 
 }
 
@@ -59,7 +69,7 @@ function insertHeaderRows() {
             previousRowFormat = thisRowFormat;
         } else {
             if (thisRowFormat !== previousRowFormat) {
-                insertHeaderRow(previousRowFormat, i);
+                insertHeaderRow(previousRowFormat, i + 1);
                 previousRowFormat = thisRowFormat;
             }
         }
@@ -150,11 +160,6 @@ function createCell(cell, text, chosenClass, possibleURL) {
 }
 
 function isAcceptableHost(str) {
-    var acceptableDomains = ['tappedout.net', 'twitter.com', 'deckstats.net', 'tcgplayer.com', 'mtgtop8.com', 'streamdecker.com', 'twimg.com', 'mtggoldfish.com'];
     return acceptableDomains.indexOf(extractRootDomain(str)) >= 0
 }
 
-function listDecks() {
-    // We will ask the EBS for the decklist as a string.
-    $.ajax(requests.get);
-}
