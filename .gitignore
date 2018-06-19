@@ -1,8 +1,8 @@
 # Idea
 .idea/*
 
-# Secrets
-services/privateSettings.json
+# This project doesn't have a backend anymore.
+services/*
 
 # Yarn lockfile
 yarn.lock
