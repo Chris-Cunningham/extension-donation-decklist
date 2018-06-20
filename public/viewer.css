@@ -1,5 +1,11 @@
 body {
+    background-color: transparent;
+}
+
+.extension-decklist-container {
     background-color:#fff;
+    border-radius: 15px;
+    text-align: center;
 }
 
 table {
@@ -11,8 +17,19 @@ table {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 18px;
     font-weight: bold;
-    text-align: center;
-    padding: 10px;
+    padding: 5px;
+    margin: auto;
+}
+.extension-decklist-title a {
+    color: #000;
+}
+.extension-decklist-title img {
+    vertical-align: middle;
+    display: inline-block;
+}
+.extension-decklist-title span{
+    vertical-align: middle;
+    display: inline-block;
 }
 
 tr:nth-of-type(odd).extension-decklist-deck {
@@ -26,6 +43,8 @@ tr.extension-decklist-deck td {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 12px;
     font-weight: normal;
+    white-space: nowrap;
+    text-align: left;
 }
 
 tr.extension-decklist-format-header td {
@@ -34,6 +53,7 @@ tr.extension-decklist-format-header td {
     font-weight: bold;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
+    text-align: left;
 }
 
 tr.extension-decklist-column-headings td {

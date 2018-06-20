@@ -41,6 +41,19 @@ function initClient() {
 */
 function handleClientLoad() {
     gapi.load('client', initClient);
+
+    // For component extensions, make the toggle-display-on-click part of the page actually toggle the display.
+    var toggler = document.getElementById('toggle-display-on-click');
+    if (toggler) {
+        toggler.addEventListener("click", function() {
+            pagination = document.getElementById('paginationDiv');
+            content    = document.getElementById('content-table');
+            sellout    = document.getElementById('selloutDiv');
+            toggleDisplay(pagination);
+            toggleDisplay(content);
+            toggleDisplay(selloutDiv);
+         });
+     }
 }
 
 function listDecks() {
@@ -77,5 +90,14 @@ function listDecks() {
 
     }
 
+}
+
+// For component extensions, we may need to toggle the display of elements to save space.
+function toggleDisplay(obj) {
+    if (obj.style.display === 'none') {
+        obj.style.display = '';
+    } else {
+        obj.style.display = 'none';
+    }
 }
 

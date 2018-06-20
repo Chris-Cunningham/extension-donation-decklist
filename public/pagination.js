@@ -7,7 +7,7 @@
 */
 
 function paginate() {
-    var tbl = document.getElementById('content-table'),
+    var tbl = document.getElementById('content-tbody'),
         rowsPerPage = getRowsPerPage(),
         pageStartLocations = [],
         div = document.getElementById('paginationDiv'),
@@ -44,7 +44,7 @@ function paginate() {
 }
 
 function appendAnchorToDiv(pageIndex, startRow, rowsPerPage, className) {
-    var tbl = document.getElementById('content-table'),
+    var tbl = document.getElementById('content-tbody'),
         div = document.getElementById('paginationDiv'),
         a = document.createElement("A");
 
@@ -59,15 +59,15 @@ function appendAnchorToDiv(pageIndex, startRow, rowsPerPage, className) {
 }
 
 function paginationChange(pageNumber) {
-    var tbl = document.getElementById('content-table'),
+    var tbl = document.getElementById('content-tbody'),
         div = document.getElementById('paginationDiv'),
         rowsPerPage = getRowsPerPage(),
         lastHeaderRow = -1,
         r,
         i;
 
-    // "Page 1" should start at row 0.
-    var startRow = (pageNumber - 1) * rowsPerPage;
+    // "Page 1" should start at row 1. If you have 20 rows per page, you want the pages to start at 1, 21, 41, etc.
+    var startRow = (pageNumber - 1) * rowsPerPage + 1;
 
     // Loop through all the rows before this page and turn them off.
     for (i = 0; i < startRow; i++) {

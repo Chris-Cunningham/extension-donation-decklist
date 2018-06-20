@@ -26,20 +26,29 @@
     <script src="pagination.js"></script>
     <script src="viewer.js" type="text/javascript"></script>
 
-    <div class="extension-decklist-title">Jeff's !deck !donationqueue</div>
-    <div class="center">
-        <div class="pagination" id="paginationDiv">
+    <div class="extension-decklist-container">
+        <div class="extension-decklist-title">
+            Jeff's !deck !donationqueue
+        </div>
+        <div class="pagination-center">
+            <div class="pagination" id="paginationDiv">
+            </div>
+        </div>
+        <table id="content-table">
+            <thead>
+                <tr class="extension-decklist-column-headings">
+                    <td width="55%">Deck</td>
+                    <td width="45%">Democracy</td>
+                </tr>
+            </thead>
+            <tbody id="content-tbody"></tbody>
+        </table>
+        <div id="selloutDiv" class="extension-decklist-title">
+            <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>
+            <span>!hooglsellout</span>
+            <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>
         </div>
     </div>
-    <table>
-        <thead>
-            <tr class="extension-decklist-column-headings">
-                <td width="50%">Deck</td>
-                <td width="50%">Democracy</td>
-            </tr>
-        </thead>
-        <tbody id="content-table"></tbody>
-    </table>
 
     <script async defer src="https://apis.google.com/js/api.js"
       onload="this.onload=function(){};handleClientLoad()"

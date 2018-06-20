@@ -2,7 +2,7 @@
 const acceptableDomains = ['tappedout.net', 'twitter.com', 'deckstats.net', 'tcgplayer.com', 'mtgtop8.com', 'streamdecker.com', 'twimg.com', 'mtggoldfish.com'];
 
 /**
-* Append a row element to the content-table displaying the results of the API call.
+* Append a row element to the content-tbody displaying the results of the API call.
 *
 * @param {row} a row from a Google Sheets API spreadsheet read.
 */
@@ -16,7 +16,7 @@ function appendTable(row) {
         deckDate = row[5],
         deckDatePoints = deckPoints - deckMoneyPoints,
         stringForVotes;
-    var tbl = document.getElementById('content-table');
+    var tbl = document.getElementById('content-tbody');
 
     // Make a row in the table to put things in.
     var r = tbl.insertRow(-1);
@@ -47,7 +47,7 @@ function appendTable(row) {
 
 // Insert all the header rows. This function assumes that all the decklists are already in the table.
 function insertHeaderRows() {
-    var tbl = document.getElementById('content-table'),
+    var tbl = document.getElementById('content-tbody'),
         previousRowFormat,
         thisRowFormat,
         i;
@@ -83,14 +83,14 @@ function insertHeaderRows() {
 }
 
 /**
-* Insert a row element into the content-table at position rowPosition that is a header for the given format.
+* Insert a row element into the content-tbody at position rowPosition that is a header for the given format.
 *
 * @param {stringFormat} a string that represents the format name.
 * @param {rowPosition} an integer that gives the location of the row to be inserted.
 */
 function insertHeaderRow(stringFormat, rowPosition) {
     // Make a row in the table to put things in.
-    var tbl = document.getElementById('content-table'),
+    var tbl = document.getElementById('content-tbody'),
         r = tbl.insertRow(rowPosition),
         c1 = r.insertCell(-1),
         columnsInTable = 2;
