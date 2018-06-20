@@ -1,3 +1,7 @@
+body {
+    background-color:#fff;
+}
+
 table {
     border-collapse: collapse;
     width:100%;
@@ -14,6 +18,9 @@ table {
 tr:nth-of-type(odd).extension-decklist-deck {
     background-color:#eee;
 }
+tr:nth-of-type(even).extension-decklist-deck {
+    background-color:#fff;
+}
 
 tr.extension-decklist-deck td {
     font-family: Tahoma, Geneva, sans-serif;
@@ -23,9 +30,8 @@ tr.extension-decklist-deck td {
 
 tr.extension-decklist-format-header td {
     font-family: Tahoma, Geneva, sans-serif;
-    font-size: 18px;
+    font-size: 12px;
     font-weight: bold;
-    padding: 5px;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
 }
@@ -34,13 +40,15 @@ tr.extension-decklist-column-headings td {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 12px;
     font-weight: bold;
+    text-align: left;
 }
-a {
+
+tr.extension-decklist-deck td a {
     color: #0000bb;
 }
-a:visited {
+tr.extension-decklist-deck td a:visited {
     color: #800080;
 }
-a:hover {
+tr.extension-decklist-deck td a:hover {
     color: #800080;
 }

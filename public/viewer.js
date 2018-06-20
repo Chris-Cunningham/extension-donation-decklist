@@ -49,6 +49,7 @@ function listDecks() {
         twitch.rig.log('Extension Donation Decklist Error 4: No Google API Client found.')
         return;
     } else {
+
         // The Google API client exists; let's go get some rows.
         gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
@@ -62,8 +63,10 @@ function listDecks() {
                         appendTable(row);
                     }
                 }
-                // After the table is created, go back into it and put header rows in for new formats.
+                // After the table is created, go back into it and put header rows in for new formats. See decklist.js.
                 insertHeaderRows();
+                // After that is all done, set up pagination so we aren't scrolling iframe. See pagination.js.
+                paginate();
             } else {
                 twitch.rig.log('Extension Donation Decklist Error 2: No data found.');
             }

@@ -24,6 +24,9 @@ function appendTable(row) {
     // Set up the class for CSS.
     r.className = 'extension-decklist-deck';
 
+    // Start out with all rows invisible. pagination.js will fix this.
+    r.style.display = 'none';
+
     // Label the title so we can get category headers inserted later.
     r.title = deckFormat;
 
@@ -88,24 +91,18 @@ function insertHeaderRows() {
 function insertHeaderRow(stringFormat, rowPosition) {
     // Make a row in the table to put things in.
     var tbl = document.getElementById('content-table'),
-        r1 = tbl.insertRow(rowPosition),
-        c1 = r1.insertCell(-1),
-        r2 = tbl.insertRow(rowPosition + 1),
-        c2 = r2.insertCell(-1),
-        c3 = r2.insertCell(-1),
+        r = tbl.insertRow(rowPosition),
+        c1 = r.insertCell(-1),
         columnsInTable = 2;
 
     // The first row just says the format name.
     // Let the CSS control what this looks like except set its column span.
-    r1.className = 'extension-decklist-format-header';
+    r.className = 'extension-decklist-format-header';
     c1.colSpan = columnsInTable;
     createCell(c1, stringFormat);
+    // Start out with all rows invisible. pagination.js will fix this.
+    r.style.display = 'none';
 
-    // The second row says we are looking at Decks and Democracy Points.
-    // Let the CSS control what this looks like except set its column span.
-    r2.className = 'extension-decklist-column-headings';
-    createCell(c2, 'Deck');
-    createCell(c3, 'Democracy');
 
 }
 
@@ -160,6 +157,11 @@ function createCell(cell, text, chosenClass, possibleURL) {
 }
 
 function isAcceptableHost(str) {
-    return acceptableDomains.indexOf(extractRootDomain(str)) >= 0
+    // The source HTML page, as a panel, will think that decklistShouldIncludeLinks returns True.
+    // As a component, it will tell us that no, decklistShouldIncludeLinks() returns False.
+    if (decklistShouldIncludeLinks()) {
+        return acceptableDomains.indexOf(extractRootDomain(str)) >= 0
+    }
 }
+
 
