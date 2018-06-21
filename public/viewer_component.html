@@ -11,17 +11,16 @@
     <script src="decklist.js"></script>
     <script src="pagination.js"></script>
     <script src="viewer.js"></script>
-    <script src="api.js"></script>
 
     <div class="extension-decklist-component-container" id="ComponentExtensionContainer">
         <div class="extension-decklist-title">
             <a href="#" id="toggle-display-on-click">Jeff's !deck !donationq</a>
         </div>
         <div class="pagination-center">
-            <div class="pagination" id="paginationDiv">
+            <div class="pagination" id="paginationDiv" style="display: none">
             </div>
         </div>
-        <table id="content-table" class="extension-decklist-content-table">
+        <table id="content-table" class="extension-decklist-content-table" style="display: none">
             <thead>
                 <tr class="extension-decklist-column-headings">
                     <td width="50%">Deck</td>
@@ -30,7 +29,7 @@
             </thead>
             <tbody id="content-tbody"></tbody>
         </table>
-        <div id="selloutDiv" class="extension-decklist-sellout">
+        <div id="selloutDiv" class="extension-decklist-sellout" style="display: none">
             <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>
             <span>!hooglsellout</span>
             <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>

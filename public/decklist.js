@@ -1,19 +1,27 @@
 // The domains listed here need to be explicitly allowed on the extension's Whitelisted Panel URLs.
-const acceptableDomains = ['tappedout.net', 'twitter.com', 'deckstats.net', 'tcgplayer.com', 'mtgtop8.com', 'streamdecker.com', 'twimg.com', 'mtggoldfish.com'];
+const acceptableDomains = ['tappedout.net',
+                           'twitter.com',
+                           'deckstats.net',
+                           'tcgplayer.com',
+                           'mtgtop8.com',
+                           'streamdecker.com',
+                           'twimg.com',
+                           'imgur.com',
+                           'mtggoldfish.com',
+                           'deckedbuilder.com'];
 
 /**
 * Append a row element to the content-tbody displaying the results of the API call.
 *
-* @param {row} a row from a Google Sheets API spreadsheet read.
+* @param {row} a row from a JSON parsed published Google spreadsheet feed.
 */
 function appendTable(row) {
     // Here is how we find the relevant things out of the row.
-    var deckFormat = row[3],
-        deckName = row[1],
-        deckPoints = row[0],
-        deckLink = row[2],
-        deckMoneyPoints = row[4],
-        deckDate = row[5],
+    var deckFormat = row.gsx$format.$t,
+        deckName = row.gsx$deckname.$t,
+        deckPoints = row.gsx$totaldemocracy.$t,
+        deckLink = row.gsx$decklink.$t,
+        deckMoneyPoints = row.gsx$bonusweight.$t,
         deckDatePoints = deckPoints - deckMoneyPoints,
         stringForVotes;
     var tbl = document.getElementById('content-tbody');
@@ -42,7 +50,34 @@ function appendTable(row) {
     }
     createCell(r.insertCell(-1), stringForVotes);
 
+}
 
+// create DIV element and append to the table cell.
+function createCell(cell, text, chosenClass, possibleURL) {
+
+    var div = document.createElement('div')        // create DIV element
+    if (chosenClass) div.className = chosenClass;  // If they gave us a class, set it.
+
+    // See https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url
+    // This tries to tell if a string is a URL by asking the browser to parse
+    // it as a URL. If the result goes to a different host, the string is probably a URL.
+    if (possibleURL) {
+        var a  = document.createElement('a');
+        a.href = possibleURL;
+        if (a.host && a.host != window.location.host && isAcceptableHost(a.host)) {
+            a.text = text;
+            a.target = "_blank";
+            div.appendChild(a);    // The anchor element here is valid, so use it!
+        } else {
+            var txt = document.createTextNode(text); // create text node, it turned out this wasn't a URL.
+            div.appendChild(txt);                    // append text node to the DIV
+        }
+    } else {
+        // No one gave us a potential URL, so just put in the text node.
+        var txt = document.createTextNode(text); // create text node, it turned out this wasn't a URL.
+        div.appendChild(txt);                    // append text node to the DIV
+    }
+    cell.appendChild(div);                       // append DIV to the table cell
 }
 
 // Insert all the header rows. This function assumes that all the decklists are already in the table.
@@ -79,7 +114,6 @@ function insertHeaderRows() {
     }
     // There will always be a header row at the top. This is the price of looping in reverse.
     insertHeaderRow(previousRowFormat, 0);
-
 }
 
 /**
@@ -102,8 +136,6 @@ function insertHeaderRow(stringFormat, rowPosition) {
     createCell(c1, stringFormat);
     // Start out with all rows invisible. pagination.js will fix this.
     r.style.display = 'none';
-
-
 }
 
 /**
@@ -128,42 +160,13 @@ function extractRootDomain(domain) {
     return domain;
 }
 
-// create DIV element and append to the table cell.
-function createCell(cell, text, chosenClass, possibleURL) {
-
-    var div = document.createElement('div') // create DIV element
-    if (chosenClass) div.className = chosenClass;  // If they gave us a class, set it.
-
-    // See https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url
-    // This tries to tell if a string is a URL by asking the browser to parse
-    // it as a URL. If the result goes to a different host, the string is probably a URL.
-    if (possibleURL) {
-        var a  = document.createElement('a');
-        a.href = possibleURL;
-        if (a.host && a.host != window.location.host && isAcceptableHost(a.host)) {
-            a.text = text;
-            a.target = "_blank";
-            div.appendChild(a);    // The anchor element here is valid, so use it!
-        } else {
-            var txt = document.createTextNode(text); // create text node, it turned out this wasn't a URL.
-            div.appendChild(txt);                    // append text node to the DIV
-        }
-    } else {
-        // No one gave us a potential URL, so just put in the text node.
-        var txt = document.createTextNode(text); // create text node, it turned out this wasn't a URL.
-        div.appendChild(txt);                    // append text node to the DIV
-    }
-    cell.appendChild(div);                       // append DIV to the table cell
-}
-
 function decklistShouldIncludeLinks() {
-    // In a panel extension, it is ok to have links.
+    // In a panel extension, it is ok to have links. Otherwise no.
     return extensionType() === 'Panel';
 }
 
 function isAcceptableHost(str) {
-    // The source HTML page, as a panel, will think that decklistShouldIncludeLinks returns True.
-    // As a component, it will tell us that no, decklistShouldIncludeLinks() returns False.
+    // If we are allowed to show deck links at all, then check whether the domain is in the accepted list.
     if (decklistShouldIncludeLinks()) {
         return acceptableDomains.indexOf(extractRootDomain(str)) >= 0
     }

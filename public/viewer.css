@@ -2,22 +2,61 @@ body {
     background-color: transparent;
 }
 
+table {
+    border-collapse: collapse;
+    width:100%;
+}
+
 .extension-decklist-panel-container {
     background-color:#fff;
     border-radius: 15px;
     text-align: center;
 }
+.extension-decklist-panel-container tr:nth-of-type(odd).extension-decklist-deck {
+    background-color:#ddd;
+}
+.extension-decklist-panel-container tr:nth-of-type(even).extension-decklist-deck {
+    background-color:#fff;
+}
+.extension-decklist-panel-container a {
+    color:#000;
+}
+.extension-decklist-panel-container a:visited {
+    color:#000;
+}
+.extension-decklist-panel-container a:hover {
+    color:#6060F0;
+}
+.extension-decklist-panel-container tr.extension-decklist-format-header td {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
 
 .extension-decklist-component-container {
-    opacity: 0.6;
-    background-color:#fff;
+    opacity: 0.8;
+    background-color:#000;
+    color: #fff;
     border-radius: 15px;
     text-align: center;
 }
-
-table {
-    border-collapse: collapse;
-    width:100%;
+.extension-decklist-component-container tr:nth-of-type(odd).extension-decklist-deck {
+    background-color:#222;
+}
+.extension-decklist-component-container tr:nth-of-type(even).extension-decklist-deck {
+    background-color:#000;
+}
+.extension-decklist-component-container a {
+    color:#fff;
+}
+.extension-decklist-component-container a:visited {
+    color:#fff;
+}
+.extension-decklist-component-container a:hover {
+    color:#ddd;
+}
+.extension-decklist-component-container tr.extension-decklist-format-header td {
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
 }
 
 .extension-decklist-title {
@@ -27,9 +66,6 @@ table {
     padding: 5px;
     margin: auto;
 }
-.extension-decklist-title a {
-    color: #000;
-}
 
 .extension-decklist-sellout {
     font-family: Tahoma, Geneva, sans-serif;
@@ -37,9 +73,6 @@ table {
     font-weight: bold;
     padding: 5px;
     margin: auto;
-}
-.extension-decklist-sellout a {
-    color: #000;
 }
 .extension-decklist-sellout img {
     vertical-align: middle;
@@ -50,12 +83,6 @@ table {
     display: inline-block;
 }
 
-tr:nth-of-type(odd).extension-decklist-deck {
-    background-color:#eee;
-}
-tr:nth-of-type(even).extension-decklist-deck {
-    background-color:#fff;
-}
 
 tr.extension-decklist-deck td {
     font-family: Tahoma, Geneva, sans-serif;
@@ -69,8 +96,6 @@ tr.extension-decklist-format-header td {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 12px;
     font-weight: bold;
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
     text-align: left;
 }
 
@@ -81,12 +106,3 @@ tr.extension-decklist-column-headings td {
     text-align: left;
 }
 
-tr.extension-decklist-deck td a {
-    color: #0000bb;
-}
-tr.extension-decklist-deck td a:visited {
-    color: #800080;
-}
-tr.extension-decklist-deck td a:hover {
-    color: #800080;
-}

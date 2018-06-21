@@ -15,13 +15,23 @@
     font-weight: bold;
 }
 
+.extension-decklist-panel-container .pagination a:hover:not(.active) {background-color: #ddd;}
+.extension-decklist-panel-container .pagination a:not(.active) {
+    background-color: white;
+    color: black;
+}
+
+.extension-decklist-component-container .pagination a:hover:not(.active) {background-color: #444;}
+.extension-decklist-component-container .pagination a:not(.active) {
+    background-color: black;
+    color: white;
+}
+
 .pagination a.active {
     background-color: #6060F0;
     color: white;
     border: 1px solid #4CAF50;
 }
-
-.pagination a:hover:not(.active) {background-color: #ddd;}
 
 .pagination a:first-child {
     border-top-left-radius: 5px;

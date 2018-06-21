@@ -2,53 +2,30 @@
 // because who wants to type this every time?
 var twitch = window.Twitch.ext;
 
-
-/*
-* The following is setup to be able to access google sheets.
-*
-* Client ID and API key from the Developer Console.
-* IMPORTANT: You need to restrict your Google API key to only be usable from certain IPs or Referrers so you
-* don't end up letting everyone in the world use your extension.
-*
-* Yes, the API Key is here on purpose.
-*
-* Twitch extensions are served from https://<twitch-client-id>.ext-twitch.com/ so that can help you restrict.
-*/
-var CLIENT_ID = '113528389247-uaj21g751tq0osm83k9hc2do2ab3f0r1.apps.googleusercontent.com';
-var API_KEY = 'AIzaSyBvQ9J6Z5jt89qaszH4SqzrHh_1IePTeBo';
-// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
-
-function initClient() {
-    gapi.client.init({
-        apiKey: API_KEY,
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        discoveryDocs: DISCOVERY_DOCS
-    }).then(function(response) {
-        listDecks();
-    }, function(reason) {
-        twitch.rig.log('Extension Donation Decklist Error 1: ' + reason.error.message);
-        twitch.rig.log(reason.details);
-    });
-}
-
-/**
-*  On load, called to load the Google Docs API client library and populate the table.
-*/
 function handleClientLoad() {
-    gapi.load('client', initClient);
+    // When the client loads, we can go get the google spreadsheet and use handleParsedData on the result.
 
-    var pagination = document.getElementById('paginationDiv'),
-        content    = document.getElementById('content-table'),
-        sellout    = document.getElementById('selloutDiv');
+    // Note: the google sheet referenced here must be "Published." Do this by going to File --> Publish to Web...
+    var publishedSpreadsheetId = '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
+        publishedSpreadsheetUrl = "https://spreadsheets.google.com/feeds/list/" + publishedSpreadsheetId + "/od6/public/values?alt=json";
+
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var parsedJSON = JSON.parse(this.responseText);
+        handleParsedData(parsedJSON);
+        }
+    };
+
+    xmlhttp.open("GET", publishedSpreadsheetUrl, true);
+    xmlhttp.send();
 
     if (extensionType() === 'Component') {
-        // For component extensions, make the toggle-display-on-click part of the page actually toggle the display.
-        var toggler = document.getElementById('toggle-display-on-click');
+        // For component extensions, make the toggle-display-on-click part of the page actually toggle part of the display.
+        var pagination = document.getElementById('paginationDiv'),
+            content    = document.getElementById('content-table'),
+            sellout    = document.getElementById('selloutDiv'),
+            toggler = document.getElementById('toggle-display-on-click');
         toggler.addEventListener("click", function() {
             toggleDisplay(pagination);
             toggleDisplay(content);
@@ -57,40 +34,25 @@ function handleClientLoad() {
      }
 }
 
-function listDecks() {
-    // This function should only be called if the promise to create an API client was fulfilled, but check anyway.
-    if(!gapi.client) {
-        twitch.rig.log('Extension Donation Decklist Error 4: No Google API Client found.')
-        return;
-    } else {
 
-        // The Google API client exists; let's go get some rows.
-        gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
-        range: 'Magic!A2:F',
-        }).then(function(response) {
-            var range = response.result;
-            if (range.values.length > 0) {
-                for (var i = 0; i < range.values.length; i++) {
-                    var row = range.values[i];
-                    if (String(row[1]) != 'undefined') {   // Don't display blank rows.
-                        appendTable(row);
-                    }
-                }
-                // After the table is created, go back into it and put header rows in for new formats. See decklist.js.
-                insertHeaderRows();
-                // After that is all done, set up pagination so we aren't scrolling iframe. See pagination.js.
-                paginate();
-            } else {
-                twitch.rig.log('Extension Donation Decklist Error 2: No data found.');
+/* Takes a parsed JSON from a google spreadsheet and calls the functions to add decks to the table,
+*  create header rows, and paginate the table. */
+function handleParsedData(parsedJSON) {
+    var range = parsedJSON.feed.entry;
+    if (range.length > 0) {
+        for (var i = 0; i < range.length; i++) {
+            var row = range[i];
+            if (row.gsx$deckname.$t.length > 0) {   // Don't display blank rows.
+                appendTable(row);
             }
-        }, function(response) {
-            twitch.rig.log('Extension Donation Decklist Error 3: ' + response.result.error.message);
-        });
-
-
+        }
+        // After the table is created, go back into it and put header rows in for new formats. See decklist.js.
+        insertHeaderRows();
+        // After that is all done, set up pagination so we aren't scrolling iframe. See pagination.js.
+        paginate();
+    } else {
+        twitch.rig.log('Extension Donation Decklist Error: No data found.');
     }
-
 }
 
 // Can we tell whether we are a panel or component extension?
@@ -101,7 +63,6 @@ function extensionType() {
         return 'Panel';
     }
 }
-
 
 // For component extensions, we may need to toggle the display of elements to save space.
 function toggleDisplay(obj) {

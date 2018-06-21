@@ -20,7 +20,7 @@ function getRowsPerPage() {
 
 function paginate() {
     var tbl = document.getElementById('content-tbody'),
-        rowsPerPage = getRowsPerPage(),   // The source HTML file should create this function to tell us how many rows.
+        rowsPerPage = getRowsPerPage(),
         div = document.getElementById('paginationDiv'),
         i,
         numberOfPages = 1,  // We will increment this later.
