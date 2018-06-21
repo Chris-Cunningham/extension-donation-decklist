@@ -8,7 +8,8 @@ Instead of repeatedly linking their chat to the google sheet, the streamer can a
 directly show the list to the viewers.
 
 ## Nuts and Bolts
-When the client (viewer.html) loads, it uses viewer.js to connect to the Google API using an API Key that
-is in the code but restricted in the Google Developer Console to avoid abuse.
+When the client (viewer.html) loads, it uses viewer.js to connect to the published google spreadsheet as a JSON.
 
 The client then uses decklist.js to parse the results of the Google API call into a nice-looking table of decks.
+
+pagination.js goes through the table and figures out how to display it as a set of fixed-length pages so there is no scrolling.
