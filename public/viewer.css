@@ -2,7 +2,14 @@ body {
     background-color: transparent;
 }
 
-.extension-decklist-container {
+.extension-decklist-panel-container {
+    background-color:#fff;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.extension-decklist-component-container {
+    opacity: 0.6;
     background-color:#fff;
     border-radius: 15px;
     text-align: center;
@@ -23,11 +30,22 @@ table {
 .extension-decklist-title a {
     color: #000;
 }
-.extension-decklist-title img {
+
+.extension-decklist-sellout {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 5px;
+    margin: auto;
+}
+.extension-decklist-sellout a {
+    color: #000;
+}
+.extension-decklist-sellout img {
     vertical-align: middle;
     display: inline-block;
 }
-.extension-decklist-title span{
+.extension-decklist-sellout span {
     vertical-align: middle;
     display: inline-block;
 }

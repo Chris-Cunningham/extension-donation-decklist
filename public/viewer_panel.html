@@ -8,21 +8,12 @@
 </head>
 <body>
     <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
-    <script type="text/javascript">
-        function decklistShouldIncludeLinks() {
-            // In a panel extension, it is ok to have links.
-            return true;
-        }
-        function getRowsPerPage() {
-            // In a panel extension, you can fit more on a page.
-            return 22;
-        }
-    </script>
     <script src="decklist.js"></script>
     <script src="pagination.js"></script>
-    <script src="viewer.js" type="text/javascript"></script>
+    <script src="viewer.js"></script>
+    <script src="api.js"></script>
 
-    <div class="extension-decklist-container">
+    <div class="extension-decklist-panel-container" id="PanelExtensionContainer">
         <div class="extension-decklist-title">
             Jeff's !deck !donationqueue
         </div>
@@ -30,7 +21,7 @@
             <div class="pagination" id="paginationDiv">
             </div>
         </div>
-        <table id="content-table">
+        <table id="content-table" class="extension-decklist-content-table">
             <thead>
                 <tr class="extension-decklist-column-headings">
                     <td width="55%">Deck</td>
@@ -39,16 +30,12 @@
             </thead>
             <tbody id="content-tbody"></tbody>
         </table>
-        <div id="selloutDiv" class="extension-decklist-title">
+        <div id="selloutDiv" class="extension-decklist-sellout">
             <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>
             <span>!hooglsellout</span>
             <span><img src="https://static-cdn.jtvnw.net/emoticons/v1/700227/1.0"></span>
         </div>
     </div>
 
-    <script async defer src="api.js"
-      onload="this.onload=function(){};handleClientLoad()"
-      onreadystatechange="if (this.readyState === 'complete') this.onload()">
-   </script>
 </body>
 </html>

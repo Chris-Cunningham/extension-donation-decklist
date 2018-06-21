@@ -156,6 +156,11 @@ function createCell(cell, text, chosenClass, possibleURL) {
     cell.appendChild(div);                       // append DIV to the table cell
 }
 
+function decklistShouldIncludeLinks() {
+    // In a panel extension, it is ok to have links.
+    return extensionType() === 'Panel';
+}
+
 function isAcceptableHost(str) {
     // The source HTML page, as a panel, will think that decklistShouldIncludeLinks returns True.
     // As a component, it will tell us that no, decklistShouldIncludeLinks() returns False.

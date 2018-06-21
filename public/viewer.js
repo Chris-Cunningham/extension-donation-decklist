@@ -42,13 +42,14 @@ function initClient() {
 function handleClientLoad() {
     gapi.load('client', initClient);
 
-    // For component extensions, make the toggle-display-on-click part of the page actually toggle the display.
-    var toggler = document.getElementById('toggle-display-on-click');
-    if (toggler) {
+    var pagination = document.getElementById('paginationDiv'),
+        content    = document.getElementById('content-table'),
+        sellout    = document.getElementById('selloutDiv');
+
+    if (extensionType() === 'Component') {
+        // For component extensions, make the toggle-display-on-click part of the page actually toggle the display.
+        var toggler = document.getElementById('toggle-display-on-click');
         toggler.addEventListener("click", function() {
-            pagination = document.getElementById('paginationDiv');
-            content    = document.getElementById('content-table');
-            sellout    = document.getElementById('selloutDiv');
             toggleDisplay(pagination);
             toggleDisplay(content);
             toggleDisplay(selloutDiv);
@@ -92,6 +93,16 @@ function listDecks() {
 
 }
 
+// Can we tell whether we are a panel or component extension?
+function extensionType() {
+    if (document.getElementById('ComponentExtensionContainer')) {
+        return 'Component';
+    } else if (document.getElementById('PanelExtensionContainer')) {
+        return 'Panel';
+    }
+}
+
+
 // For component extensions, we may need to toggle the display of elements to save space.
 function toggleDisplay(obj) {
     if (obj.style.display === 'none') {
@@ -101,3 +112,7 @@ function toggleDisplay(obj) {
     }
 }
 
+// This used to be inline javascript. Removing it to here.
+window.onload = function () {
+    handleClientLoad();
+}

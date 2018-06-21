@@ -9,6 +9,15 @@
 // The main challenge here is knowing where each page actually starts in the table. That is stored here.
 let paginationFirstRowOfPage = [0];
 
+// We need to know how many rows per page to use. If we are a panel extension, we want a lot. If component, fewer.
+function getRowsPerPage() {
+    if (extensionType() === 'Component') {
+        return 10;
+    } else {
+        return 22;
+    }
+}
+
 function paginate() {
     var tbl = document.getElementById('content-tbody'),
         rowsPerPage = getRowsPerPage(),   // The source HTML file should create this function to tell us how many rows.

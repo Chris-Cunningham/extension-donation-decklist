@@ -1,11 +1,9 @@
 .pagination-center {
     text-align: center;
 }
-
 .pagination {
     display: inline-block;
 }
-
 .pagination a {
     color: black;
     float: left;
