@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="pagination.css">
     <style>
         .extension-decklist-container {
-            opacity: 0.5;
+            opacity: 0.6;
         }
     </style>
 </head>
@@ -19,12 +19,12 @@
       crossorigin="anonymous"></script>
     <script type="text/javascript">
         function decklistShouldIncludeLinks() {
-            // In a panel extension, it is ok to have links.
+            // In a component extension, it is not ok to have links.
             return false;
         }
         function getRowsPerPage() {
             // In a component extension, you can fit less on a page.
-            return 9;
+            return 10;
         }
     </script>
     <script src="decklist.js"></script>
