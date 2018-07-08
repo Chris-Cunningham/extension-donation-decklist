@@ -59,37 +59,43 @@ table {
     border-bottom: 1px solid white;
 }
 
-.extension-decklist-title {
+.extension-decklist-panel-title {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 18px;
+    padding: 5px;
     font-weight: bold;
+    margin: auto;
+}
+
+.extension-decklist-component-title {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 18px;
     padding: 5px;
     margin: auto;
 }
 
-.extension-decklist-sellout {
+.extension-decklist-addyourown {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 18px;
-    font-weight: bold;
     padding: 5px;
     margin: auto;
 }
-.extension-decklist-sellout img {
+.extension-decklist-addyourown img {
     vertical-align: middle;
     display: inline-block;
 }
-.extension-decklist-sellout span {
+.extension-decklist-addyourown span {
     vertical-align: middle;
     display: inline-block;
 }
 
-
-tr.extension-decklist-deck td {
+tr.extension-decklist-deck td div {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 12px;
     font-weight: normal;
     white-space: nowrap;
     text-align: left;
+    line-height: 110%;
 }
 
 tr.extension-decklist-format-header td {

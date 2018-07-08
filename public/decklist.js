@@ -2,13 +2,13 @@
 const acceptableDomains = ['tappedout.net',
                            'twitter.com',
                            'deckstats.net',
-                           'tcgplayer.com',
                            'mtgtop8.com',
                            'streamdecker.com',
                            'twimg.com',
                            'imgur.com',
                            'mtggoldfish.com',
-                           'deckedbuilder.com'];
+                           'deckedbuilder.com',
+                           'jeffhoogland.com'];
 
 /**
 * Append a row element to the content-tbody displaying the results of the API call.
@@ -162,7 +162,7 @@ function extractRootDomain(domain) {
 
 function decklistShouldIncludeLinks() {
     // In a panel extension, it is ok to have links. Otherwise no.
-    return extensionType() === 'Panel';
+    return extensionType() == 'panel';
 }
 
 function isAcceptableHost(str) {

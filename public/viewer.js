@@ -20,16 +20,16 @@ function handleClientLoad() {
     xmlhttp.open("GET", publishedSpreadsheetUrl, true);
     xmlhttp.send();
 
-    if (extensionType() === 'Component') {
+    if (extensionType() == 'component') {
         // For component extensions, make the toggle-display-on-click part of the page actually toggle part of the display.
         var pagination = document.getElementById('paginationDiv'),
             content    = document.getElementById('content-table'),
-            sellout    = document.getElementById('selloutDiv'),
+            addyourown = document.getElementById('addYourOwnDiv'),
             toggler = document.getElementById('toggle-display-on-click');
         toggler.addEventListener("click", function() {
             toggleDisplay(pagination);
             toggleDisplay(content);
-            toggleDisplay(selloutDiv);
+            toggleDisplay(addyourown);
          });
      }
 }
@@ -51,17 +51,23 @@ function handleParsedData(parsedJSON) {
         // After that is all done, set up pagination so we aren't scrolling iframe. See pagination.js.
         paginate();
     } else {
-        twitch.rig.log('Extension Donation Decklist Error: No data found.');
+        twitch.rig.log('Extension Decklist Queue Error: No data found.');
     }
 }
 
 // Can we tell whether we are a panel or component extension?
 function extensionType() {
-    if (document.getElementById('ComponentExtensionContainer')) {
-        return 'Component';
-    } else if (document.getElementById('PanelExtensionContainer')) {
-        return 'Panel';
+    /* var urlParams = new URLSearchParams(location.search);
+    return urlParams.get('anchor');*/
+
+    if (document.getElementById('ComponentExtensionContainer') && typeof document.getElementById('ComponentExtensionContainer') === 'object') {
+        return 'component';
+    } else if (document.getElementById('PanelExtensionContainer') && typeof document.getElementById('PanelExtensionContainer') === 'object') {
+        return 'panel';
+    } else {
+        return 'unknown';
     }
+
 }
 
 // For component extensions, we may need to toggle the display of elements to save space.
