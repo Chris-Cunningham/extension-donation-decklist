@@ -38,12 +38,36 @@ function handleClientLoad() {
 /* Takes a parsed JSON from a google spreadsheet and calls the functions to add decks to the table,
 *  create header rows, and paginate the table. */
 function handleParsedData(parsedJSON) {
+
     var range = parsedJSON.feed.entry;
     if (range.length > 0) {
+
+        var maxcolumns = 0,
+            rowasarray = [],
+            longestrowasarray = [];
+
+         // We need to find out what the columns are called. So find the row with the most columns.
+         // The reason we have to do this is that if a row has a blank column, that column isn't even mentioned in the row.
+        for (var i = 0; i < range.length; i++) {
+            rowasarray = range[i].content.$t.split(',').map(s => s.trim());
+            if (rowasarray.length > maxcolumns) {
+                maxcolumns = rowasarray.length;   // So far, this is the maximum columns in a row.
+                longestrowasarray = rowasarray;   // And this is the longest row found so far.
+            }
+        }
+
+        // The longest row as array has the following setup at the start:
+        // Total points // Deck name // Deck link // Format // Bonus Money
+        // The longest row as an array has the column names in it before the first colon in each entry.
+        var columnnames = longestrowasarray.map(s=> s.split(':', 1))
+        // Bring the first 4 columns of this -- they will be the names corresponding to Deck name // Deck link // Format // Bonus Money
+        if (maxcolumns < 4) return false; // If we never found 4 columns, something has gone horribly wrong.
+        var columnnamestouse = columnnames.slice(0,4)
+
         for (var i = 0; i < range.length; i++) {
             var row = range[i];
-            if (row.gsx$deckname.$t.length > 0) {   // Don't display blank rows.
-                appendTable(row);
+            if (row.content.$t.split(',').length > 2) {   // Don't display blank rows.
+                appendTable(row, columnnamestouse);
             }
         }
         // After the table is created, go back into it and put header rows in for new formats. See decklist.js.

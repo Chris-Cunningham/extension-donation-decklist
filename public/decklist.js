@@ -15,15 +15,18 @@ const acceptableDomains = ['tappedout.net',
 *
 * @param {row} a row from a JSON parsed published Google spreadsheet feed.
 */
-function appendTable(row) {
+function appendTable(row, columnnamestouse) {
     // Here is how we find the relevant things out of the row.
-    var deckFormat = row.gsx$format.$t,
-        deckName = row.gsx$deckname.$t,
-        deckPoints = row.gsx$totaldemocracy.$t,
-        deckLink = row.gsx$decklink.$t,
-        deckMoneyPoints = row.gsx$bonusweight.$t,
+    // We can get the first column with row.title.$t.
+    // The other column names are given in columnnamestouse.
+    var deckPoints = row.title.$t,                            // The first column  (title)                  is the deck points.
+        deckName = row['gsx$'+columnnamestouse[0]].$t,        // The second column (content column 0) value is the deck name.
+        deckLink = row['gsx$'+columnnamestouse[1]].$t,        // The third column  (content column 1) value is the deck link.
+        deckFormat = row['gsx$'+columnnamestouse[2]].$t,      // The fourth column (content column 2) value is the money donated.
+        deckMoneyPoints = row['gsx$'+columnnamestouse[3]].$t, // The fifth column  (content column 3) value is the money donated.
         deckDatePoints = deckPoints - deckMoneyPoints,
         stringForVotes;
+
     var tbl = document.getElementById('content-tbody');
 
     // Make a row in the table to put things in.
