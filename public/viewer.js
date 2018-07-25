@@ -7,18 +7,32 @@ function handleClientLoad() {
 
     // Note: the google sheet referenced here must be "Published." Do this by going to File --> Publish to Web...
     var publishedSpreadsheetId = '1DuDRgdV0LNJC2YNMJS4K24tds2e-L6F9cZuaSjTC0-0',
-        publishedSpreadsheetUrl = "https://spreadsheets.google.com/feeds/list/" + publishedSpreadsheetId + "/od6/public/values?alt=json";
+        publishedSpreadsheetFeedUrl = "https://spreadsheets.google.com/feeds/list/" + publishedSpreadsheetId + "/od6/public/values?alt=json",
+        publishedSpreadsheetHeadUrl = "https://spreadsheets.google.com/feeds/cells/" + publishedSpreadsheetId + "/od6/public/full?min-row=1&max-row=1&min-col=1&max-col=5&alt=json";
 
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-        var parsedJSON = JSON.parse(this.responseText);
-        handleParsedData(parsedJSON);
+    var xmlhttpfeed = new XMLHttpRequest(),
+        xmlheadfeed = new XMLHttpRequest(),
+        parsedHeadJSON,
+        parsedFeedJSON;
+
+    xmlhttpfeed.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            parsedFeedJSON = JSON.parse(this.responseText);
+            handleParsedData(parsedHeadJSON, parsedFeedJSON);
         }
     };
 
-    xmlhttp.open("GET", publishedSpreadsheetUrl, true);
-    xmlhttp.send();
+    xmlheadfeed.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            parsedHeadJSON = JSON.parse(this.responseText);
+            xmlhttpfeed.open("GET", publishedSpreadsheetFeedUrl, true);
+            xmlhttpfeed.send();
+        }
+    };
+
+    xmlheadfeed.open("GET", publishedSpreadsheetHeadUrl, true);
+    xmlheadfeed.send();
+
 
     if (extensionType() == 'component') {
         // For component extensions, make the toggle-display-on-click part of the page actually toggle part of the display.
@@ -37,32 +51,20 @@ function handleClientLoad() {
 
 /* Takes a parsed JSON from a google spreadsheet and calls the functions to add decks to the table,
 *  create header rows, and paginate the table. */
-function handleParsedData(parsedJSON) {
+function handleParsedData(parsedHeadJSON, parsedFeedJSON) {
 
-    var range = parsedJSON.feed.entry;
+
+    var range = parsedFeedJSON.feed.entry;
     if (range.length > 0) {
 
-        var maxcolumns = 0,
-            rowasarray = [],
-            longestrowasarray = [];
+        // The parsedHeadJSON has the titles of the columns. So extract those.
+        var headerRow = parsedHeadJSON.feed.entry,
+            columnnamestouse = [];
 
-         // We need to find out what the columns are called. So find the row with the most columns.
-         // The reason we have to do this is that if a row has a blank column, that column isn't even mentioned in the row.
-        for (var i = 0; i < range.length; i++) {
-            rowasarray = range[i].content.$t.split(',').map(s => s.trim());
-            if (rowasarray.length > maxcolumns) {
-                maxcolumns = rowasarray.length;   // So far, this is the maximum columns in a row.
-                longestrowasarray = rowasarray;   // And this is the longest row found so far.
-            }
+        for (var j = 1; j < 5; j++) {
+            // Column 0 will always be accessed the same way when reading the feed. We need to tell it the names of #1 through 4.
+            columnnamestouse.push(headerRow[j].content.$t.toLowerCase().replace(/\s/g, ''))  // Remove spaces and make lowercase.
         }
-
-        // The longest row as array has the following setup at the start:
-        // Total points // Deck name // Deck link // Format // Bonus Money
-        // The longest row as an array has the column names in it before the first colon in each entry.
-        var columnnames = longestrowasarray.map(s=> s.split(':', 1))
-        // Bring the first 4 columns of this -- they will be the names corresponding to Deck name // Deck link // Format // Bonus Money
-        if (maxcolumns < 4) return false; // If we never found 4 columns, something has gone horribly wrong.
-        var columnnamestouse = columnnames.slice(0,4)
 
         for (var i = 0; i < range.length; i++) {
             var row = range[i];
